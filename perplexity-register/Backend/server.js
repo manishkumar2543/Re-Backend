@@ -6,7 +6,6 @@ import http from "http";
 import { initSocket } from "./src/sockets/server.socket.js";
 
 dotenv.config();
-// ask();
 
 const PORT = Number(process.env.PORT) || 3000;
 
