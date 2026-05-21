@@ -1,9 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import { useChat } from '../hooks/useChat';
+import { useSelector } from 'react-redux';
 
 const Dashboard = () => {
+  const chat=useChat()
+  const [chatInput,setChatInput]=useState("");
+  const {userMessage,setUserMessage}=useState("");
+
+  const chats=useSelector((state)=>state.chat.chats);
+  const currentChatId=useSelector((state)=>state.chat.currentChatId);
+  
   const { initializeSocketConnection } = useChat();
   const mockChats = ['chat title', 'chat title', 'chat title', 'chat title', 'chat title'];
+  const dummyMessages = [
+    { id: 1, role: 'ai', content: 'Hi! I am your AI assistant. What would you like to explore today?' },
+    { id: 2, role: 'user', content: 'Can you show me the latest product updates?' },
+    { id: 3, role: 'ai', content: 'Sure. I can summarize release highlights, bug fixes, and roadmap notes.' },
+    { id: 4, role: 'user', content: 'Great, start with the highlights please.' },
+  ];
   const [message, setMessage] = useState('');
 
   useEffect(() => {
@@ -28,26 +42,45 @@ const Dashboard = () => {
             </div>
           </aside>
 
-          <div className='flex w-full flex-1 flex-col justify-end'>
+          <div className=' relative  flex max-w-3/5 h-full flex-1 gap-4 mx-auto min-w-0  flex-col justify-end'>
+            <div className='message w-full flex-1  space-y-7 overflow-y-auto pr-1 pb-30'>
+              {chats[currentChatId]?.message.map((message) => (
+                <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <div
+                    className={`w-fit max-w-[80%] rounded-2xl border-[2px] px-3 py-1.5 text-sm  md:text-base ${
+                      message.role === 'user'
+                        ? 'border-blue-300 bg-blue-500 text-white '
+                        : 'border-white bg-[#181A1B] text-white'
+                    }`}
+                  >
+                    {message.content}
+                  </div>
+                </div>
+              ))}
+            </div>
+
             <footer className='rounded-2xl border-[3px] border-white bg-white px-4 py-3'>
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
-                  if (!message.trim()) return;
-                  console.log(message);
-                  setMessage('');
+                 const trimMessage=chatInput.trim();
+                  if(!trimMessage){
+                    return;
+                  }
+                  chat.handleSendMessage({message: trimMessage,chatId:currentChatId});
+                  setChatInput("");
                 }}
               >
                 <div className='flex items-center gap-3'>
                   <input
                     type='text'
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
                     placeholder='Type your message...'
                     className='w-full rounded-xl border-[3px] border-neutral-900 bg-white px-3 py-1 text-xl text-neutral-900 placeholder:text-neutral-500 focus:outline-none'
                   />
                   <button
-                    type='submit'
+                    type='submit' 
                     className='rounded-xl border-[3px] border-neutral-900 px-4 py-1 text-lg font-medium text-neutral-900'
                   >
                     Send

@@ -1,13 +1,14 @@
+import "dotenv/config";
 import {ChatGoogleGenerativeAI} from "@langchain/google-genai";
 import { ChatMistralAI } from "@langchain/mistralai";
-import {AIMessage, HumanMessage, SystemMessage} from 'langchain'
+import { AIMessage, HumanMessage, SystemMessage } from "@langchain/core/messages";
 
 const mistralModel=new ChatMistralAI({
   model: "mistral-small-latest",
   apiKey:process.env.MISTRAL_API_KEY
 
 })
-
+console.log("KEY =", process.env.MISTRAL_API_KEY);
 const  geminiModel=new ChatGoogleGenerativeAI({
   apiKey:process.env.GEMINI_API_KEY,
   model:"gemini-2.5-flash-lite"
