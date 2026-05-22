@@ -16,7 +16,7 @@ const  geminiModel=new ChatGoogleGenerativeAI({
 });
 
 export async function gentrateResponse(message) {
-  const response=await geminiModel.invoke(message.map(msg=>{
+  const chatMessages=message.map(msg=>{
     if(msg.role==="user"){
        {
       return new HumanMessage(msg.content)
@@ -25,11 +25,15 @@ export async function gentrateResponse(message) {
     else if(msg.role== "ai"){
       return new AIMessage(msg.content)
     }
-   
-   
-  }));
+  }).filter(Boolean)
 
-  return response.text
+  try {
+    const response=await geminiModel.invoke(chatMessages);
+    return response.text
+  } catch (error) {
+    const fallbackResponse=await mistralModel.invoke(chatMessages);
+    return fallbackResponse.text
+  }
 }
 
 export async function generateChatTittle(message) {

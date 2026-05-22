@@ -3,33 +3,66 @@ import { gentrateResponse,generateChatTittle } from "../services/ai.service.js"
 import chatModel from "../models/chat.model.js"
 import messageModel from "../models/message.model.js"
 
+function normalizeTitle(title, message) {
+    const cleaned = (title || "").replace(/["'\n\r]/g, " ").trim()
+    const lower = cleaned.toLowerCase()
+    if (!cleaned || lower === "demo" || lower === "new chat" || lower === "chat") {
+        return message.trim().split(/\s+/).slice(0, 5).join(" ")
+    }
+    return cleaned
+}
+
 
 export async function sendMessage(req,res) {
  
-    const {message,chat:chatId}=req.body
+    const {message,chat:legacyChatId,chatId}=req.body
+    const activeChatId=chatId || legacyChatId
 
     
     // const result=await gentrateResponse(message);
     let title=null, chat=null
-    if(!chatId){
-         title=await generateChatTittle(message);
+    if(!activeChatId){
+         try{
+            title=await generateChatTittle(message);
+            title=normalizeTitle(title, message);
+         }catch(error){
+            title=message.trim().split(/\s+/).slice(0, 5).join(" ")
+         }
          chat=await chatModel.create({
             user:req.user.id,
             title
         })
+    } else {
+        chat = await chatModel.findOne({
+            _id: activeChatId,
+            user: req.user.id
+        })
+        if(!chat){
+            return res.status(404).json({
+                message:"Chat not found"
+            })
+        }
     }
 
     const userMessage=await messageModel.create({
-        chat:chatId || chat._id, 
+        chat:activeChatId || chat._id, 
         content: message,
         role: "user"
     })
-     const messages= await messageModel.find({chat:chatId || chat._id});
+     const messages= await messageModel.find({chat:activeChatId || chat._id});
        
 
-    const result=await gentrateResponse(messages)
+    let result=""
+    try{
+        result=await gentrateResponse(messages)
+    }catch(error){
+        result="Sorry, I am unable to respond right now. Please try again."
+    }
+    if(!result || !result.trim()){
+        result="Sorry, I am unable to respond right now. Please try again."
+    }
     const aiMessage=await messageModel.create({
-        chat:chatId || chat._id,
+        chat:activeChatId || chat._id,
         content:result,
         role:"ai"
     })
