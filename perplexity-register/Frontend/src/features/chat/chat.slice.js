@@ -28,10 +28,6 @@ const chatSlice = createSlice({
          })
    
       },
-      addNewMessages:(state,action)=>{
-         const {chatId,messages}=action.payload;
-         state.chats[chatId].message.push(...messages);
-      },
      setChats:(state,action)=>{
         state.chats = action.payload;
      },
@@ -46,7 +42,7 @@ const chatSlice = createSlice({
      }
     }
 });
-export const {setChats,setCurrentChatId,setLoading,setError,createNewChat,addNewMessage,addNewMessages} = chatSlice.actions;
+export const {setChats,setCurrentChatId,setLoading,setError,createNewChat,addNewMessage} = chatSlice.actions;
 export default chatSlice.reducer;
 
 
